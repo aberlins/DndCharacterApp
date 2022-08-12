@@ -1,0 +1,98 @@
+Arms: appear sculpted from marble
+Arms: extra long
+Arms: feathered forearms
+Arms: scaled forearms
+Arms: seemingly boneless
+Build: always slender
+Build: beautifully proportioned
+Build: graceful
+Build: unusually light
+Build: well-muscled
+Digits: extra long
+Digits: metallic nails
+Digits: odd number
+Digits: shining talons
+Digits: unusually colored nails
+Ears: catlike
+Ears: feathered
+Ears: long-lobed
+Ears: pivoting
+Ears: pointed
+Eyes: catlike
+Eyes: glowing
+Eyes: iridescent
+Eyes: jewel-like
+Eyes: multicolored
+Face: baby-faced
+Face: metallic lips
+Face: perfectly symmetrical
+Face: unearthly beauty
+Face: white scar
+Hair: animated
+Hair: feathers
+Hair: heatless flames
+Hair: metallic
+Hair: turns silver in moonlight
+Hands: always cool and dry
+Hands: blackened knuckles
+Hands: glowing palms
+Hands: leave contrails
+Hands: fingerprints look like holy symbols
+Head: animal features
+Head: bald
+Head: draconic features
+Head: halo
+Head: unusually shaped
+Legs: clawed feet
+Legs: extra long
+Legs: feathered shins
+Legs: metallic scaled shins
+Legs: unnaturally small feet
+Shadow: animated
+Shadow: bright
+Shadow: metallic
+Shadow: prismatic
+Shadow: winged
+Skin: ashen
+Skin: feathered
+Skin: feathered
+Skin: glittering
+Skin: glowing
+Skin: iridescent
+Skin: metallic scales
+Skin: metallic sheen
+Skin: prismatic scales
+Skin: unusual hue
+Voice: echoes dramatically
+Voice: musical
+Voice: unusually high
+Voice: unusually low
+Voice: words you speak aloud seem to be heard mentally
+Wings: butterfly
+Wings: feathered
+Wings: light
+Wings: metallic dragon
+Wings: prismatic
+Other: always look clean
+Other: always well lit
+Other: androgynous
+Other: breathing sounds like ocean waves
+Other: clothing billows even without wind
+Other: covered in freckles
+Other: don't sweat
+Other: floral breath
+Other: fox tail
+Other: melodic laugh
+Other: multicolored tears
+Other: nearby bells ring when you pass by
+Other: no body hair
+Other: pearlescent teeth
+Other: random choral sounds surround you
+Other: sacred birthmark
+Other: stigmata
+Other: sweet scent
+Other: sweet taste
+Other: trance-like sleep
+Other: unicorn horn
+Other: unusual footprints
+Other: unusual temperature
