@@ -116,8 +116,9 @@ def get_col(elementOrIndex, file_path: str, isSorted: bool) -> ():
     # Absolute path is need to find the location of the resource folder
 
     # If program is running from IDE use folder in project folder
-    if (exists("../../lib/" + file_path)):
-        absolute_path = "../../lib" + file_path
+    path = "lib/" + file_path
+    if (exists(path)):
+        absolute_path = "lib/" + file_path
     # Use external folder
     else:
         absolute_path = FOLDER_EXTENSION + file_path
