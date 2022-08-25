@@ -320,6 +320,9 @@ def random_dnd_class(level: int, ability_scores: [], race: Race,
             # see if any additional spells need to be finalized.
             dndclass.set_archetype_name(archetype_list[1] +
                                         " " + line[index - 1])
+
+            print(dndclass.get_archetype_name())
+
             need_to_set_spells = \
                 dndclass.set_archetype_attributes(archetype_list[2], index)
             if need_to_set_spells:

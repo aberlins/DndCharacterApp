@@ -116,7 +116,7 @@ class DndClass:
                list(self._armor_prof), line[1].split("="))
         if line[2].lower() != "none":
             self._weapon_prof = _add_more_items_to_list(
-                list(self._weapon_prof_prof), line[2].split("="))
+                list(self._weapon_prof), line[2].split("="))
         if line[3].lower() != "none":
             self._tool_prof = _add_more_items_to_list(
                 list(self._tool_prof), line[3].split("="))

@@ -65,6 +65,10 @@ def generate_character_sheet():
             change_text_area("Cannot create a character sheet at this time."
                          "\nPlease restart the program.")
             return
+        elif race.lower() == "random":
+            level = int(level)
+            race = ran.random_race(level)
+            sheet = random_sheet_attributes(level, race)
         elif level.lower() == "random":
             level = ran.random_level()
             index = _RACES.index(race)
