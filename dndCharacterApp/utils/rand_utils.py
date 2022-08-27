@@ -167,12 +167,12 @@ def random_list (list: [], num_of_items: int) -> []:
 
     return final_list
 
-# Function used to select random equipment given a list of strings representing
-# choices of equipment/languages that can be made.
+# Function used to select random equipment,languages or proficiencies given a list of strings
+# representing choices of state category that can be made.
 # Certain flags are used to indicate attributes about these choices such as
 # "!" representing multiple unique items that can be added to the final list
 # if this choice is selected. (/,?,!,*,@)
-def random_equipment_or_language (list: [], file_path: str, is_armor: bool) -> []:
+def random_equip_or_lang_or_pro (list: [], file_path: str, is_armor: bool) -> []:
     final_list = []
 
     # Loop through various item selections in the list, make a choice,
@@ -300,11 +300,11 @@ def random_dnd_class(level: int, ability_scores: [], race: Race,
 
         # Set the classes weapons, armor and items depending on its
         # proficiencies.
-        dndclass.weapons = (random_equipment_or_language(
+        dndclass.weapons = (random_equip_or_lang_or_pro(
             choice_list[2].split("="), io.WEAPON_TYPE_FILE_PATH, False))
-        dndclass.armor = (random_equipment_or_language(
+        dndclass.armor = (random_equip_or_lang_or_pro(
             choice_list[3].split("="), io.ARMOR_TYPE_FILE_PATH, True))
-        dndclass.items = (random_equipment_or_language(
+        dndclass.items = (random_equip_or_lang_or_pro(
             choice_list[4].split("="), None, False))
 
         # Figure out if class has access to its archetypes at this level.
@@ -335,10 +335,20 @@ def random_dnd_class(level: int, ability_scores: [], race: Race,
                                                     dndclass.get_casting_ability())],
                                             dndclass.get_spells_known())
 
-        # Finally add additional level information to its attacks and spell casting
+        # Add additional level information to its attacks and spell casting
         # abilities.
         dndclass.set_attacks_and_spell_casting(dnd_mod.finalize_attacks_and_spell_casting(
             list(dndclass.get_attacks_and_spell_casting()), dndclass.get_level()))
+
+        # Finally, if further choices need to be made regarding proficiencies/skill bonuses then do so.
+        dndclass.set_weapon_prof(tuple(random_equip_or_lang_or_pro(list(dndclass.get_weapon_prof()),
+                                                                   io.WEAPON_TYPE_FILE_PATH, False)))
+        dndclass.set_armor_prof((tuple(random_equip_or_lang_or_pro(list(dndclass.get_armor_prof()),
+                                                                   io.ARMOR_TYPE_FILE_PATH, True))))
+        dndclass.set_tool_prof((tuple(random_equip_or_lang_or_pro(list(dndclass.get_tool_prof()),
+                                                                  io.TOOL_TYPE_FILE_PATH, False))))
+        dndclass.set_skill_bonuses((tuple(random_equip_or_lang_or_pro(list(dndclass.get_skill_bonuses()),
+                                                                      None, False))))
 
     return dndclass
 
@@ -347,7 +357,7 @@ def random_character_sheet(dndClass: DndClass, gender: Gender, name: str, age: i
     characterSheet.set_hit_points(random_hit_points(dndClass.get_hit_die(),
                                                dndClass.get_level(),
                                                characterSheet.get_ability_modifiers()[2]))
-    characterSheet.set_languages(random_equipment_or_language(list(characterSheet.get_languages()),
+    characterSheet.set_languages(random_equip_or_lang_or_pro(list(characterSheet.get_languages()),
                             io.LANGUAGE_FILE_PATH, False))
 
     return characterSheet

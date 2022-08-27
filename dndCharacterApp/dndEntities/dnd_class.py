@@ -236,6 +236,18 @@ class DndClass:
     def set_attacks_and_spell_casting(self, attacks_and_spell_casting: ()):
         self._attacks_and_spell_casting = attacks_and_spell_casting
 
+    def set_armor_prof(self, armor_prof: ()):
+        self._armor_prof = armor_prof
+
+    def set_weapon_prof(self, weapon_prof: ()):
+        self._weapon_prof = weapon_prof
+
+    def set_tool_prof(self, tool_prof: ()):
+        self._tool_prof = tool_prof
+
+    def set_skill_bonuses(self, skill_bonuses: ()):
+        self._skill_bonuses = skill_bonuses
+
     # Getters for private attributes of dnd class
     def get_name(self) -> str:
         return self._name
