@@ -121,22 +121,29 @@ class DndClass:
             self._tool_prof = _add_more_items_to_list(
                 list(self._tool_prof), line[3].split("="))
         if line[4].lower() != "none":
-            _add_more_items_to_list(
+            if self._skill_bonuses is None:
+                self._skill_bonuses = []
+            self._skill_bonuses = _add_more_items_to_list(
                 list(self._skill_bonuses), line[4].split("="))
+        if line[5].lower() != "none":
+            if self.languages is None:
+                self.languages = []
+            self.languages = _add_more_items_to_list(
+                list(self.languages), line[5].split("="))
 
         # Check to see if archetype grants spell casting and set traits accordingly.
-        sub_line = line[6].split("=")
+        sub_line = line[7].split("=")
         if sub_line[0].lower() == "true":
             self._initialize_spell_casting_traits(sub_line)
 
         # Check to see if archetype grants bonus spells and add them accordingly
         # If further spell selection is needed notify the sender.
-        sub_line = line[5].split("=")
+        sub_line = line[6].split("=")
         if sub_line[0].lower() == "true":
             need_to_set_spells = self._set_bonus_spells(sub_line[1])
 
         # Add new features gained through the archetype to the final list.
-        new_features = _initialize_features_or_attacks(line[7].split("="), self._level)
+        new_features = _initialize_features_or_attacks(line[8].split("="), self._level)
         self._features = _add_more_items_to_list(self._features, tuple(new_features))
 
         return need_to_set_spells
