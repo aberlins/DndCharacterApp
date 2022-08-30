@@ -146,6 +146,13 @@ class DndClass:
         new_features = _initialize_features_or_attacks(line[8].split("="), self._level)
         self._features = _add_more_items_to_list(self._features, tuple(new_features))
 
+        # If new attacks/spell casting attacks are granted via the archetype add them to the
+        # total list
+        if line[9].lower() != "none":
+            new_att_or_spell = _initialize_features_or_attacks(line[9].split("="), self._level)
+            self._attacks_and_spell_casting = _add_more_items_to_list(self._attacks_and_spell_casting,
+                                                                      tuple(new_att_or_spell))
+
         return need_to_set_spells
 
     # Function used to set skill bonuses only if they are valid
