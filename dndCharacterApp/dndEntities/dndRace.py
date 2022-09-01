@@ -70,6 +70,10 @@ class Race:
         # Convert to tuple since spells won't need further altering
         self._spells = tuple(self._spells)
 
+    # List of setters for attributes of the race class
+    def set_speed(self, speed: int):
+        self._speed = speed
+
     # List of getters for all attributes of the race class.
     def get_name(self) -> str:
         return self._name

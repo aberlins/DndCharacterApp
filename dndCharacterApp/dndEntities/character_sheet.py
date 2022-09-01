@@ -191,14 +191,19 @@ class CharacterSheet:
         return -1
 
     def get_speed(self) -> int:
-        if self._race is not None:
-            return self._race.get_speed()
+        if self._race is not None and self._dndClass is not None:
+            return math.get_speed(self._race.get_speed(), self._dndClass.get_speed_bonus())
         return -1
 
     def get_armor_class(self) -> int:
         if self._dndClass is not None:
             armors = self._dndClass.armor
-            return math.get_armor_class(self.get_ability_scores()[1], armors)
+            if armors is not None:
+                return math.get_armor_class(self.get_ability_scores()[1], armors)
+            # Special ac is used for classes like the monk who get bonuses while wearing no
+            # armor.
+            elif self._dndClass.get_special_ac() is not None:
+                return self._dndClass.get_special_ac()
         return -1
 
     # Update needed for possible bonuses

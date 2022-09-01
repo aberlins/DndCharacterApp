@@ -10,6 +10,7 @@ from dndCharacterApp.dndEntities.dndBackground import Background as Background
 import dndCharacterApp.utils.io_utils as io
 import dndCharacterApp.utils.math_utils as math
 
+
 class DndClass:
 
     # Constructor for DndClass
@@ -102,6 +103,8 @@ class DndClass:
         self.weapons = None
         self.items = None
         self.languages = None
+        self._special_ac = None
+        self._speed_bonus = None
 
     # Function used to set bonus attributes to the class granted by the
     # selected archetype. If the archetype is granted spells and requires
@@ -112,8 +115,8 @@ class DndClass:
 
         # Add extra bonuses and proficiencies granted by the archetype.
         if line[1].lower() != "none":
-           self._armor_prof = _add_more_items_to_list(
-               list(self._armor_prof), line[1].split("="))
+            self._armor_prof = _add_more_items_to_list(
+                list(self._armor_prof), line[1].split("="))
         if line[2].lower() != "none":
             self._weapon_prof = _add_more_items_to_list(
                 list(self._weapon_prof), line[2].split("="))
@@ -152,6 +155,10 @@ class DndClass:
             new_att_or_spell = _initialize_features_or_attacks(line[9].split("="), self._level)
             self._attacks_and_spell_casting = _add_more_items_to_list(self._attacks_and_spell_casting,
                                                                       tuple(new_att_or_spell))
+
+        # Finally, cycle through all features and make changes to the class's bonuses
+        # or other attributes if needed.
+        self.initialize_special_abilities()
 
         return need_to_set_spells
 
@@ -234,7 +241,7 @@ class DndClass:
         if self._race is None:
             if self._level == race.get_level():
                 self._race = race
-                self.ability_scores = finalize_ability_scores\
+                self.ability_scores = finalize_ability_scores \
                     (self.ability_scores, self._race.get_ability_score_incr())
                 return True
         return False
@@ -246,6 +253,50 @@ class DndClass:
             self._background = background
             return True
         return False
+
+    # Function used to change specific attributes that may be affected by the class's
+    # abilities. Should be used after the archetype is set.
+    def initialize_special_abilities(self):
+        if self._features is not None:
+            for feature in self._features:
+                match feature.lower():
+                    # Add 10 to the character's speed.
+                    case "superior mobility":
+                        if self._speed_bonus is None:
+                            self._speed_bonus = []
+                        self._speed_bonus.append(10)
+                    case "rakish audacity":
+                        print("here")
+                        cha_mod = math.get_ability_mod(self.ability_scores[5])
+                        if cha_mod > -1:
+                            if self._init_bonus is None:
+                                self._init_bonus = []
+                            self._init_bonus.append(cha_mod)
+                    case "unarmored defense":
+                        dex_mod = math.get_ability_mod(self.ability_scores[1])
+                        wis_mod = math.get_ability_mod(self.ability_scores[4])
+                        ac = math.get_armor_class(self.ability_scores[1], self.armor)
+                        if (dex_mod + wis_mod + 10) >= ac:
+                            self._special_ac = dex_mod + wis_mod + 10
+                            self.armor = None
+                    case "unarmored movement":
+                        if self.armor is None:
+                            if self._speed_bonus is None:
+                                self._speed_bonus = []
+
+                            # Give the proper bonus based on the character's level
+                            if self._level >= 18:
+                                self._speed_bonus.append(30)
+                            elif self._level >= 14:
+                                self._speed_bonus.append(25)
+                            elif self._level >= 10:
+                                self._speed_bonus.append(20)
+                            elif self._level >= 6:
+                                self._speed_bonus.append(15)
+                            elif self._level >= 2:
+                                self._speed_bonus.append(10)
+                            else:
+                                self._speed_bonus.append(0)
 
     def set_attacks_and_spell_casting(self, attacks_and_spell_casting: ()):
         self._attacks_and_spell_casting = attacks_and_spell_casting
@@ -275,7 +326,7 @@ class DndClass:
     def get_prof_bonus(self) -> int:
         return self._prof_bonus
 
-    def get_init_bonus(self) -> int:
+    def get_init_bonus(self) -> []:
         return self._init_bonus
 
     def get_armor_prof(self) -> ():
@@ -299,13 +350,13 @@ class DndClass:
     def get_spell_attack_bonus(self) -> int:
         if self._casting_ability is not None:
             return math.get_spell_attack_bonus(self.ability_scores,
-                                           self._casting_ability, self._prof_bonus)
+                                               self._casting_ability, self._prof_bonus)
         return -1
 
     def get_spell_save_dc(self) -> int:
         if self._casting_ability is not None:
             return math.get_spell_save_dc(self.ability_scores,
-                                           self._casting_ability, self._prof_bonus)
+                                          self._casting_ability, self._prof_bonus)
         return -1
 
     def get_prepared_or_known(self) -> str:
@@ -319,6 +370,12 @@ class DndClass:
 
     def get_spell_list_file_path(self) -> str:
         return self._spell_list_file_path
+
+    def get_special_ac(self) -> int:
+        return self._special_ac
+
+    def get_speed_bonus(self) -> []:
+        return self._speed_bonus
 
     def get_choice_attributes_list(self) -> ():
         return tuple(self._choice_attributes_list)
@@ -338,6 +395,7 @@ class DndClass:
     def get_background(self) -> Background:
         return self._background
 
+
 # Function used to add a Race's ability modifiers to the character's final
 # stats.
 def finalize_ability_scores(ability_scores: [], ability_score_incr: ()) -> []:
@@ -350,6 +408,7 @@ def finalize_ability_scores(ability_scores: [], ability_score_incr: ()) -> []:
             ability_scores[i] = 20
     return ability_scores
 
+
 def finalize_attacks_and_spell_casting(attacks_and_spell_casting: [], level: int) -> ():
     if attacks_and_spell_casting is not None:
         for i in range(len(attacks_and_spell_casting)):
@@ -358,6 +417,7 @@ def finalize_attacks_and_spell_casting(attacks_and_spell_casting: [], level: int
                 attacks_and_spell_casting[i] += " " + line[level]
 
     return attacks_and_spell_casting
+
 
 # Function used to get a class's features or attacks depending on the
 # class itself and the level of the character.
@@ -373,6 +433,7 @@ def _initialize_features_or_attacks(line: [], level: int) -> []:
             temp_list.append(sub_line[1])
     return temp_list
 
+
 # Function used to get a class's proficiency bonus depending on the
 # class itself and the level of the character.
 def _get_prof_bonus(line: [], level: int) -> int:
@@ -384,11 +445,10 @@ def _get_prof_bonus(line: [], level: int) -> int:
     # Return -1 if an improper level is given.
     return -1
 
+
 # Function used to add additional items to a dnd class's
 # armor, weapon, tool or skill bonuses/proficiencies.
 def _add_more_items_to_list(old_list: [], new_items: ()) -> ():
     for item in new_items:
         old_list.append(item)
     return old_list
-
-

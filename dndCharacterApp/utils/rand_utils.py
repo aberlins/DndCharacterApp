@@ -325,6 +325,9 @@ def random_dnd_class(level: int, ability_scores: [], race: Race,
                 dndclass.set_archetype_attributes(archetype_list[2], index)
             if need_to_set_spells:
                 dndclass.spells = _finalize_spells(dndclass.spells)
+        # Initialize special abilities since it will not be done in the archetype phase
+        else:
+            dndclass.initialize_special_abilities()
 
         # If the class has access to spells then fill up its spell list randomly.
         if dndclass.spells is not None:

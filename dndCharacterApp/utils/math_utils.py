@@ -116,7 +116,7 @@ def get_skill_score(ability_score: int, add_prof_bonus: bool, prof_bonus: int) -
         else get_ability_mod(ability_score)
 
 # Function which calculates a character's initiative score give their dexterity score,
-# and any bonuses that can be applied. -1 is returned for any improper formating errors.
+# and any bonuses that can be applied. -1 is returned for any improper formatting errors.
 def get_initiative_score(dexterity_score: int, bonuses: []) -> int:
     init = get_ability_mod(dexterity_score)
 
@@ -129,6 +129,19 @@ def get_initiative_score(dexterity_score: int, bonuses: []) -> int:
                 return -1
 
     return init
+
+# Function which calculates a character's speed given their racial speed,
+# and any bonuses that can be applied. -1 is returned for any improper formatting errors.
+def get_speed(speed: int, bonuses: []) -> int:
+
+    # If bonuses is not None and contains ints then add them to the current score
+    if bonuses is not None:
+        for bonus in bonuses:
+            if isinstance(bonus, int):
+                speed += bonus
+            else:
+                return -1
+    return speed
 
 # Function which calculates a character's passive wisdom score give their perception score,
 # and any bonuses that can be applied.
