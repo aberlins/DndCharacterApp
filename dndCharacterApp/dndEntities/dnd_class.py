@@ -105,6 +105,8 @@ class DndClass:
         self.languages = None
         self._special_ac = None
         self._speed_bonus = None
+        self.extra_skill_bonuses = None
+        self._dont_set_spells = None
 
     # Function used to set bonus attributes to the class granted by the
     # selected archetype. If the archetype is granted spells and requires
@@ -257,30 +259,45 @@ class DndClass:
     # Function used to change specific attributes that may be affected by the class's
     # abilities. Should be used after the archetype is set.
     def initialize_special_abilities(self):
+
+        # Look through all the features and see if it matches with one of the special abilites
         if self._features is not None:
             for feature in self._features:
                 match feature.lower():
+                    # Give the class the ability to cast burning hands as a spell.
+                    case "searing arc strike":
+                        self._set_limited_bonus_spells("Wisdom", "K", [[], ["Burning Hands"]])
+                    # Give the class a list of spells that they can cast while also
+                    # preventing random spells to be added to that list.
+                    case "shadow arts":
+                        self._set_limited_bonus_spells("Wisdom", "K", [["Minor Illusion"], [],
+                                                                       ["Darkness", "Darkvision",
+                                                                        "Pass Without Trace", "Silence"]])
                     # Add 10 to the character's speed.
                     case "superior mobility":
                         if self._speed_bonus is None:
                             self._speed_bonus = []
                         self._speed_bonus.append(10)
+                    # If the character's charisma mod is above -1 then add it to their
+                    # initiative score.
                     case "rakish audacity":
-                        print("here")
                         cha_mod = math.get_ability_mod(self.ability_scores[5])
                         if cha_mod > -1:
                             if self._init_bonus is None:
                                 self._init_bonus = []
                             self._init_bonus.append(cha_mod)
+                    # Calculate a character's ac either by the tradition method with armor
+                    # Or by adding 10 + their dex mod + their wis mod without them wearing armor.
                     case "unarmored defense":
                         dex_mod = math.get_ability_mod(self.ability_scores[1])
                         wis_mod = math.get_ability_mod(self.ability_scores[4])
                         ac = math.get_armor_class(self.ability_scores[1], self.armor)
                         if (dex_mod + wis_mod + 10) >= ac:
                             self._special_ac = dex_mod + wis_mod + 10
-                            self.armor = None
+                            self.armor = []
+                    # Add bonuses to the character's speed if they are wearing no armor
                     case "unarmored movement":
-                        if self.armor is None:
+                        if len(self.armor) == 0:
                             if self._speed_bonus is None:
                                 self._speed_bonus = []
 
@@ -298,6 +315,23 @@ class DndClass:
                             else:
                                 self._speed_bonus.append(0)
 
+    # Function which sets a limited amount of spells that the class can cast while preventing
+    # further spells to be randomly added on.
+    def _set_limited_bonus_spells(self, casting_ability: str, prepared_or_known: str, spell_list: []):
+        # Set the class's spell casting capabilities in case they choose to
+        # gain a spell that they can cast.
+        self.set_casting_ability(casting_ability)
+        self.spells = [[] for i in range(len(spell_list))]
+        self.set_spell_slots(["-" for i in range(len(spell_list))])
+        self.set_prepared_or_known_caster(prepared_or_known)
+        self._dont_set_spells = True
+
+        # Insert list of spells into their proper spell level.
+        for i in range(len(spell_list)):
+            if spell_list[i] != []:
+                for spell in spell_list[i]:
+                    self.spells[i].append(spell)
+
     def set_attacks_and_spell_casting(self, attacks_and_spell_casting: ()):
         self._attacks_and_spell_casting = attacks_and_spell_casting
 
@@ -312,6 +346,21 @@ class DndClass:
 
     def set_skill_bonuses(self, skill_bonuses: ()):
         self._skill_bonuses = skill_bonuses
+
+    def set_features(self, features: ()):
+        self._features = features
+
+    def set_casting_ability(self, casting_ability: str):
+        self._casting_ability = casting_ability
+
+    def set_spell_slots(self, spell_slots: []):
+        self._spell_slots = spell_slots
+
+    def set_prepared_or_known_caster(self, prepared_or_known: str):
+        if prepared_or_known == "K":
+            self._prepared_or_known = "K"
+        else:
+            self._prepared_or_known = "P"
 
     # Getters for private attributes of dnd class
     def get_name(self) -> str:
@@ -371,6 +420,9 @@ class DndClass:
     def get_spell_list_file_path(self) -> str:
         return self._spell_list_file_path
 
+    def get_dont_set_spells(self) -> bool:
+        return self._dont_set_spells
+
     def get_special_ac(self) -> int:
         return self._special_ac
 
@@ -394,7 +446,6 @@ class DndClass:
 
     def get_background(self) -> Background:
         return self._background
-
 
 # Function used to add a Race's ability modifiers to the character's final
 # stats.

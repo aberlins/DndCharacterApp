@@ -47,6 +47,8 @@ class CharacterSheet:
         # If the class, race and background are present then set the final lists for the sheet.
         if self._dndClass is not None and self._race is not None and self._background is not None:
             self._set_final_lists()
+            self._skill_scores = tuple(math.get_skill_scores(self.get_ability_scores(), self._skill_prof,
+                                         self.get_prof_bonus(), self._dndClass.extra_skill_bonuses))
         else:
             self._set_none_attributes()
 
@@ -157,8 +159,7 @@ class CharacterSheet:
 
     def get_skill_scores(self) -> ():
         if self._dndClass is not None:
-            return tuple(math.get_skill_scores(self.get_ability_scores(), self._skill_prof,
-                                         self.get_prof_bonus()))
+            return self._skill_scores
         else:
             return None
 
@@ -197,8 +198,9 @@ class CharacterSheet:
 
     def get_armor_class(self) -> int:
         if self._dndClass is not None:
+            # Check if the character has armor, if not use the special ac (for Monks)
             armors = self._dndClass.armor
-            if armors is not None:
+            if len(armors) > 0:
                 return math.get_armor_class(self.get_ability_scores()[1], armors)
             # Special ac is used for classes like the monk who get bonuses while wearing no
             # armor.

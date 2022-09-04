@@ -65,7 +65,7 @@ def get_saving_throw_scores(ability_scores: [], saving_throws: (), prof_bonus: i
 # Function which returns skill scores, given: a list of ability scores,
 # a list of the character's skill bonuses, and the class's proficiency bonus
 # If any of the ability scores/skill bonuses are not formatted correctly None is returned.
-def get_skill_scores(ability_scores: [], skill_bonuses: [], prof_bonus: int) -> []:
+def get_skill_scores(ability_scores: [], skill_bonuses: [], prof_bonus: int, extra_bonuses: {}) -> []:
 
     # list filled with 0s/Falses so indexes can be referenced later
     add_prof_bonus = [False for i in range(len(SKILL_NAMES))]
@@ -106,6 +106,34 @@ def get_skill_scores(ability_scores: [], skill_bonuses: [], prof_bonus: int) -> 
             skill_scores[i] = get_skill_score(ability_scores[index], add_prof_bonus[i], prof_bonus)
         else:
             return None
+
+    # Add extra bonuses to the skills if the class or anything else grants it.
+    if extra_bonuses is not None:
+        # First match the bonus with the corresponding skill to get the proper index.
+        for bonus in extra_bonuses.keys():
+            for skill in SKILL_NAMES:
+                if bonus.lower() == skill.lower():
+                    index = SKILL_NAMES.index(skill)
+                    break
+            # Get the total bonuses that are assigned to the character
+            total_bonuses = extra_bonuses[bonus].split("=")
+            # Subtract the original proficiency bonus if it was already added.
+            if add_prof_bonus[index]:
+                skill_scores[index] = skill_scores[index] - prof_bonus
+            # For every bonus, add it to the final total.
+            for entry in total_bonuses:
+                sub_entry = entry.split("/")
+                # If there is an x in the beginning multiply the proficiency bonus and then add it
+                # to the skill score.
+                if sub_entry[0] == "x":
+                    skill_scores[index] = skill_scores[index] + (prof_bonus * int(sub_entry[1]))
+                # Otherwise, add it to the skill
+                else:
+                    # Re-add the proficiency bonus if it was removed.
+                    if add_prof_bonus[index]:
+                        skill_scores[index] = skill_scores[index] + (prof_bonus + int(sub_entry[1]))
+                    else:
+                        skill_scores[index] = skill_scores[index] + int(sub_entry[1])
 
     return skill_scores
 

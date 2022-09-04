@@ -330,7 +330,7 @@ def random_dnd_class(level: int, ability_scores: [], race: Race,
             dndclass.initialize_special_abilities()
 
         # If the class has access to spells then fill up its spell list randomly.
-        if dndclass.spells is not None:
+        if dndclass.spells is not None and dndclass.get_dont_set_spells() is None:
             dndclass.spells = random_spells(dndclass.spells, dndclass.get_spell_slots(),
                                             dndclass.get_spell_list_file_path(), dndclass.get_level(),
                                             dndclass.ability_scores[
@@ -352,6 +352,8 @@ def random_dnd_class(level: int, ability_scores: [], race: Race,
                                                                   io.TOOL_TYPE_FILE_PATH, False))))
         dndclass.set_skill_bonuses((tuple(random_equip_or_lang_or_pro(list(dndclass.get_skill_bonuses()),
                                                                       None, False))))
+
+        dndclass = _finialize_choice_special_abilities(dndclass)
 
     return dndclass
 
@@ -450,6 +452,226 @@ def _finalize_spells(spells: []) -> []:
                         break
         counter += 1
     return spells
+
+# Function used to change specific attributes that may be affected by a dnd class's
+# abilities. These abilities require random choice(s) to be made as well such
+# as picking skills from a list or even random sub abilities.
+def _finialize_choice_special_abilities(dndclass: DndClass) -> DndClass:
+    for feature in dndclass.get_features():
+        match feature.lower():
+
+            # Character gains sub-abilities which might grant them an extra power or
+            # a spell that they can cast. They gain 1 sub ability at level 3 and
+            # then another for levels 6, 11 and 17.
+            case "disciple of the elements":
+                # List of features initially available for choice.
+                available_features = ["Elemental Attunement", "Fangs of the Fire Snake",
+                                       "Fist of Four Thunders", "Fist of Unbroken Air",
+                                       "Rush of the Gale Spirits", "Shape the Flowing River",
+                                       "Sweeping Cinder Strike", "Water Whip"]
+                # List containing the random sub abilities chosen.
+                chosen_features = []
+
+                # Get a random ability and then add it to the chosen features while removing it
+                # from the total list
+                feat = random.choice(available_features)
+                chosen_features.append(feat)
+                available_features.remove(feat)
+
+                # For other levels add on the extra abilities that can now be chosen and
+                # repeat the same process as before.
+                if dndclass.get_level() >= 6:
+                    new_features = ("Clench of the North Wind", "Gong of the Summit")
+                    for n_feat in new_features:
+                        available_features.append(n_feat)
+
+                    feat = random.choice(available_features)
+                    chosen_features.append(feat)
+                    available_features.remove(feat)
+
+                    if dndclass.get_level() >= 11:
+                        new_features = ("Flames of the Phoenix", "Mist Stance", "Ride the Wind")
+                        for n_feat in new_features:
+                            available_features.append(n_feat)
+
+                        feat = random.choice(available_features)
+                        chosen_features.append(feat)
+                        available_features.remove(feat)
+
+                        if dndclass.get_level() >= 17:
+                            new_features = ("Breath of Winter", "Eternal Mountain Defense",
+                                            "River of Hungry Flame", "Wave of Rolling Earth")
+                            for n_feat in new_features:
+                                available_features.append(n_feat)
+
+                            feat = random.choice(available_features)
+                            chosen_features.append(feat)
+                            available_features.remove(feat)
+
+                # Set the class's spell casting capabilities in case they choose to
+                # gain a spell that they can cast.
+                dndclass.set_casting_ability("Wisdom")
+                dndclass.spells = [[] for i in range(6)]
+                dndclass.set_spell_slots(["-" for i in range(6)])
+                dndclass.set_prepared_or_known_caster("K")
+
+                # Finally, apply these changes to the class itself.
+                dndclass = _finalize_sub_abilities(chosen_features, dndclass)
+
+            # Choose either 2 skills or the thieves tools and the proficiency bonus fo that is
+            # doubled, at level 6 or higher 2 more skills can be selected.
+            case "expertise":
+                # Get existing bonuses if there is any
+                bonuses = dndclass.extra_skill_bonuses
+                # If it is empty then create an empty dictionary
+                if bonuses is None:
+                    bonuses = {}
+                # Get the number of skills that need to be chosen based on the
+                # character's level
+                if dndclass.get_level() >= 6:
+                    num_of_skills = 4
+                else:
+                    num_of_skills = 2
+
+                # Get all the skills the class is proficient in
+                proficient_skills = list(dndclass.get_skill_bonuses())
+                # Add Thieves tools to the list.
+                proficient_skills.append("Thieves’ Tools")
+                # Get the list of skills that will have their proficiency bonus doubled,
+                # Remove Thieves tools from the list if that was chosen.
+                proficient_skills = random_list(proficient_skills, num_of_skills)
+                if "Thieves’ Tools" in proficient_skills:
+                    proficient_skills.remove("Thieves’ Tools")
+
+                # If the skill has a pre-existing bonus then just add to it
+                remove_skill = []
+                for bonus in bonuses.keys():
+                    for skill in proficient_skills:
+                        if bonus.lower() == skill.lower():
+                            bonuses[bonus] += "=x/2"
+                            remove_skill.append(skill)
+                            break
+
+                # Remove any skills that had this bonus added on to it
+                for skill in remove_skill:
+                    proficient_skills.remove(skill)
+
+                # For remaining skills add the new entries to the dictionary
+                for skill in proficient_skills:
+                    bonuses[skill] = "x/2"
+
+                # Set the class's bonuses if an empty list needed to be created.
+                dndclass.extra_skill_bonuses = bonuses
+
+            # Choose a random sub-ability from the list (names of sub-abilities same for parent
+            # abilities). Add the chosen ability to the features list with the parent's abbreviation
+            # added to the end.
+            case ["martial discipline", "perfect form"]:
+                dnd_features = list(dndclass.get_features())
+                available_features = ["Forged Heart", "Nightmare Shroud", "Traveler’s Blade",
+                                      "Weretouched"]
+                feat = random.choice(available_features)
+
+                # Get proper abbreviation
+                if feature.lower() == "martial discipline":
+                    feat += " (MD)"
+                else:
+                    feat += " (PF)"
+
+                dnd_features.append(feat)
+                dndclass.set_features(tuple(dnd_features))
+
+            # Choose 1 language and 1 skill to be proficient in or have the proficiency bonus
+            # doubled. At levels 11, and 17 an extra langauge and skill can be selected.
+            case "mystical erudition":
+                # Skills available to choose from
+                skill_choices = ["Arcana", "History", "Investigation", "Nature", "Religion"]
+
+                # Set number of skill and languages that need to be chosen
+                if dndclass.get_level() >= 17:
+                    num_of_selections = 3
+                elif dndclass.get_level() >= 11:
+                    num_of_selections = 2
+                else:
+                    num_of_selections = 1
+
+                # Get the final list of random skills and languages
+                skill_bonuses = random_list(skill_choices, num_of_selections)
+                langs = []
+                for i in range(num_of_selections):
+                    langs.append("?Standard")
+                lang_bonuses = random_equip_or_lang_or_pro(langs,io.LANGUAGE_FILE_PATH, False)
+
+                # Add the new languages to the class's list
+                if dndclass.languages is not None:
+                    final_lang = list(dndclass.languages)
+                    for lang in langs:
+                        final_lang.append(lang)
+                    dndclass.languages = tuple(final_lang)
+                else:
+                    dndclass.languages = tuple(langs)
+
+                # Get the existing skill proficiencies and bonus proficiencies as well
+                proficient_skills = list(dndclass.get_skill_bonuses())
+                extra_bonuses = dndclass.extra_skill_bonuses if dndclass.extra_skill_bonuses is not None \
+                                else {}
+
+                # See if the character is proficient in that skill and not add it to the list
+                # If so, the proficiency bonus for that skill will be doubled
+                for skill in skill_bonuses:
+                    not_list = True
+                    for prof_skill in proficient_skills:
+                        if skill.lower() == prof_skill.lower():
+                            extra_bonuses[skill] = "=x/2" if skill in extra_bonuses.keys() else "x/2"
+                            not_list = False
+                            break
+                    if not_list:
+                        proficient_skills.append(skill)
+
+                    # Finally, add the new proficiencies to the class
+                    dndclass.set_skill_bonus(proficient_skills)
+                    dndclass.extra_skill_bonuses = extra_bonuses if len(extra_bonuses) > 0 else None
+
+    return dndclass
+
+# Helper function used to change specific attributes of a dnd class based on
+# the sub-abilities chosen if a parent ability grants them to the class.
+# Some features may not grant any changes to the class but will be added to the
+# dnd class's final features list.
+def _finalize_sub_abilities(sub_features: tuple, dndclass: DndClass) -> DndClass:
+    dnd_features = list(dndclass.get_features())
+    for feature in sub_features:
+        # Match the name of features that change attributes of the class
+        match feature.lower():
+            case "breath of winter":
+                dndclass.spells[5].append("Cone of Cold")
+            case "clench of the north wind":
+                dndclass.spells[2].append("Hold Person")
+            case "eternal mountain defense":
+                dndclass.spells[4].append("Stoneskin")
+            case "fist of four thunders":
+                dndclass.spells[1].append("Thunderwave")
+            case "flames of the phoenix":
+                dndclass.spells[3].append("Fireball")
+            case "gong of the summit":
+                dndclass.spells[2].append("Shatter")
+            case "mist stance":
+                dndclass.spells[2].append("Shatter")
+            case "ride the wind":
+                dndclass.spells[3].append("Gaseous Form")
+            case "river of hungry flame":
+                dndclass.spells[3].append("Fly")
+            case "rush of the gale spirits":
+                dndclass.spells[4].append("Wall of Fire")
+            case "sweeping cinder strike":
+                dndclass.spells[2].append("Gust of Wind")
+            case "wave of rolling earth":
+                dndclass.spells[5].append("Wall of Stone")
+        # add the ability to the final list.
+        dnd_features.append(feature)
+
+    dndclass.set_features(tuple(dnd_features))
+    return dndclass
 
 # Helper Function used to get random index of ability score that is not
 # 20 (can not be increased). If two scores need to be increased then
